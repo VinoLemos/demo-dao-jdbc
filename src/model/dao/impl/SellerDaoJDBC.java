@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -59,8 +62,9 @@ public class SellerDaoJDBC implements SellerDao {
 
 				// Objeto Department Instanciado
 				Department dep = instantiateDepartment(rs);
-				
-				// Instancia um Seller, recebendo um resultSet como argumento, e um objeto Department
+
+				// Instancia um Seller, recebendo um resultSet como argumento, e um objeto
+				// Department
 				Seller obj = instantiateSeller(rs, dep);
 				return obj;
 			}
@@ -73,7 +77,7 @@ public class SellerDaoJDBC implements SellerDao {
 		}
 	}
 
-	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException{
+	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
 		Seller obj = new Seller();
 
 		// Aplica os atributos no objeto Seller
@@ -87,7 +91,7 @@ public class SellerDaoJDBC implements SellerDao {
 	}
 
 	private Department instantiateDepartment(ResultSet rs) throws SQLException {
-		Department dep = new Department(); 
+		Department dep = new Department();
 		new Department();
 		dep.setId(rs.getInt("DepartmentId"));// Recebe o id do departamento
 		dep.setName(rs.getString("DepName"));// Recebe o nome do departamento
@@ -99,6 +103,55 @@ public class SellerDaoJDBC implements SellerDao {
 	public List<Seller> findAll() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			st = conn.prepareStatement(
+					"SELECT seller.*,department.Name as DepName "
+							+ "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id "
+							+ "WHERE DepartmentId = ? "
+							+ "ORDER BY Name");
+			
+			st.setInt(1, department.getId());// Recebe o Id do departamento
+
+			rs = st.executeQuery();
+
+			List<Seller> list = new ArrayList<>();
+
+			// Map para armazenar todos os departamentos instanciados
+			Map<Integer, Department> map = new HashMap<>();
+
+			// Enquanto houver elementos
+
+			while (rs.next()) {
+
+				// Verifica se o objeto Department já existe pelo Id
+				// Caso o Department não exista, retorna nulo
+				Department dep = map.get(rs.getInt("DepartmentId"));
+
+				// Cria um novo objeto Deparment e o adiciona ao HashMap
+
+				if (dep == null) {
+					dep = instantiateDepartment(rs);
+					map.put(rs.getInt("DepartmentId"), dep);
+				}
+
+				Seller obj = instantiateSeller(rs, dep);
+				list.add(obj);
+			}
+			return list;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+
 	}
 
 }
