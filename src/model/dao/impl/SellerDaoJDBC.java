@@ -23,7 +23,8 @@ public class SellerDaoJDBC implements SellerDao {
 	public SellerDaoJDBC(Connection conn) {
 		this.conn = conn;
 	}
-
+	
+	// Insere dados
 	@Override
 	public void insert(Seller obj) {
 		PreparedStatement st = null;
@@ -71,10 +72,31 @@ public class SellerDaoJDBC implements SellerDao {
 
 	}
 
+	// Atualiza Dados
 	@Override
 	public void update(Seller obj) {
-		// TODO Auto-generated method stub
-
+		PreparedStatement st = null;
+		try {
+			st = conn.prepareStatement(
+					"UPDATE seller "
+					+ "SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+					+ "WHERE Id = ?");
+			
+			st.setString(1, obj.getName());
+			st.setString(2, obj.getEmail());
+			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+			st.setDouble(4, obj.getBaseSalary());
+			st.setInt(5, obj.getDepartment().getId());
+			st.setInt(6, obj.getId());
+			
+			st.executeUpdate();
+		}
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override
@@ -83,6 +105,7 @@ public class SellerDaoJDBC implements SellerDao {
 
 	}
 
+	// Faz uma busca a partir do ID
 	@Override
 	public Seller findById(Integer id) {
 		PreparedStatement st = null;
@@ -99,7 +122,7 @@ public class SellerDaoJDBC implements SellerDao {
 			// Caso a consulta nao retorne nenhum registro, retorna falso
 			// Caso contrário, um novo objeto Seller é instanciado recebendo um Department
 			// como parâmetro
-
+;
 			if (rs.next()) {
 
 				// Objeto Department Instanciado
@@ -119,6 +142,7 @@ public class SellerDaoJDBC implements SellerDao {
 		}
 	}
 
+	// Instancia um seller
 	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
 		Seller obj = new Seller();
 
@@ -131,7 +155,9 @@ public class SellerDaoJDBC implements SellerDao {
 		obj.setDepartment(dep);// Recebe o objeto Department montado no início do bloco
 		return obj;
 	}
-
+	
+	
+	// Instancia um department
 	private Department instantiateDepartment(ResultSet rs) throws SQLException {
 		Department dep = new Department();
 		new Department();
@@ -141,6 +167,7 @@ public class SellerDaoJDBC implements SellerDao {
 		return dep;
 	}
 
+	// Retorna todos os elementos
 	@Override
 	public List<Seller> findAll() {
 		PreparedStatement st = null;
@@ -184,6 +211,8 @@ public class SellerDaoJDBC implements SellerDao {
 		}
 	}
 
+	
+	// Faz uma busca a partir do Departamento
 	@Override
 	public List<Seller> findByDepartment(Department department) {
 		PreparedStatement st = null;
