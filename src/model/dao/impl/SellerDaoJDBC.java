@@ -99,9 +99,25 @@ public class SellerDaoJDBC implements SellerDao {
 		}
 	}
 
+	
+	// Deleta com base no Id
 	@Override
 	public void deleteById(Integer id) {
-		// TODO Auto-generated method stub
+		PreparedStatement st = null;
+		try {
+			st = conn.prepareStatement("DELETE FROM seller WHERE Id = ?");
+			st.setInt(1, id);
+			
+			int rowsAffected = st.executeUpdate();
+			String result = rowsAffected > 0 ? "Completed delete!" : "No rows were deleted";
+			System.out.println(result);
+		}
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(st);
+		}
 
 	}
 
